@@ -1,21 +1,66 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import { motion, useInView, animate } from "framer-motion";
 import {
   ShieldCheck,
   HeartPulse,
-  Award,
-  Users,
   Target,
   Eye,
-  CheckCircle2,
   CalendarCheck,
   ArrowRight,
   Clock,
   Sparkles,
+  CheckCircle2,
+  Stethoscope,
+  Award,
 } from "lucide-react";
 import Link from "next/link";
+
+// 🔢 Scroll Animated CountUp Component
+interface CountUpProps {
+  from?: number;
+  to: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+}
+
+function CountUp({
+  from = 0,
+  to,
+  duration = 2,
+  prefix = "",
+  suffix = "",
+  decimals = 0,
+}: CountUpProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
+  useEffect(() => {
+    if (!isInView || !ref.current) return;
+
+    const node = ref.current;
+    const controls = animate(from, to, {
+      duration,
+      ease: "easeOut",
+      onUpdate(value) {
+        node.textContent = `${prefix}${value.toFixed(decimals)}${suffix}`;
+      },
+    });
+
+    return () => controls.stop();
+  }, [isInView, from, to, duration, prefix, suffix, decimals]);
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      {from.toFixed(decimals)}
+      {suffix}
+    </span>
+  );
+}
 
 export default function AboutUsPage() {
   const coreValues = [
@@ -50,10 +95,34 @@ export default function AboutUsPage() {
   ];
 
   const milestones = [
-    { number: "500+", label: "BMDC Doctors" },
-    { number: "15k+", label: "Happy Patients" },
-    { number: "25k+", label: "Successful Consultations" },
-    { number: "99.8%", label: "Satisfaction Rate" },
+    {
+      target: 500,
+      suffix: "+",
+      label: "BMDC Doctors",
+      icon: Stethoscope,
+      decimals: 0,
+    },
+    {
+      target: 15,
+      suffix: "k+",
+      label: "Happy Patients",
+      icon: HeartPulse,
+      decimals: 0,
+    },
+    {
+      target: 25,
+      suffix: "k+",
+      label: "Successful Consultations",
+      icon: Award,
+      decimals: 0,
+    },
+    {
+      target: 99.8,
+      suffix: "%",
+      label: "Satisfaction Rate",
+      icon: CheckCircle2,
+      decimals: 1,
+    },
   ];
 
   return (
@@ -183,14 +252,19 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* 4. STATS COUNTER BAR */}
+      {/* 4. STATS COUNTER BAR (SCROLL ANIMATED) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
         <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
             {milestones.map((milestone, idx) => (
               <div key={idx} className="pt-4 lg:pt-0">
                 <h3 className="text-3xl sm:text-4xl font-black text-emerald-400">
-                  {milestone.number}
+                  <CountUp
+                    to={milestone.target}
+                    suffix={milestone.suffix}
+                    decimals={milestone.decimals}
+                    duration={2.2}
+                  />
                 </h3>
                 <p className="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider mt-2">
                   {milestone.label}

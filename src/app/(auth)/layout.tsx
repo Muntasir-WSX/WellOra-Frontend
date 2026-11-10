@@ -5,19 +5,29 @@ import Logo from "@/components/shared/logo/logo";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-          <Link href="/" aria-label="WellOra home">
-            <Logo lightText={false} />
+    <div className="flex h-screen w-full flex-col bg-slate-50 overflow-hidden selection:bg-emerald-500 selection:text-white">
+      {/* Header */}
+      <header className="shrink-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" aria-label="WellOra home" className="flex items-center">
+            <Logo lightText={false} showSlogan={false} />
+          </Link>
+
+          <Link
+            href="/"
+            className="text-xs font-semibold text-slate-500 hover:text-emerald-600 transition-colors"
+          >
+            ← Back to Home
           </Link>
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
-        <div className="w-full max-w-md">{children}</div>
+      {/* Main Full Screen Container */}
+      <main className="flex-1 w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <div className="w-full max-w-6xl h-full max-h-[750px] flex justify-center items-center">
+          {children}
+        </div>
       </main>
-
     </div>
   );
 }

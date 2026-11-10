@@ -13,3 +13,4 @@ function subscription
 
 export default subscription
 
+//dynamic post subscription hobe

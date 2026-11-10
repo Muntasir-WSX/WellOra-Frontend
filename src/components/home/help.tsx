@@ -105,7 +105,7 @@ export default function HelpSection() {
                     <PhoneCall className="w-5 h-5 animate-bounce" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-black">+880 1700-000000</h4>
+                    <h4 className="text-xl font-black">+013 98345673</h4>
                     <p className="text-xs text-slate-500 font-medium">Instant Patient Assistance</p>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import Logo from "../logo/logo";
+import { Mail } from "lucide-react";
 
 
 function Footer() {
@@ -69,9 +70,10 @@ function Footer() {
               <li className="flex items-center space-x-2">
                 <span> Hotline: +880 1700-000000</span>
               </li>
-              <li className="flex items-center space-x-2">
-                <span>✉️ Support: info@wellora.com</span>
-              </li>
+              <li className="flex items-center space-x-2.5 text-sm text-slate-300">
+  <Mail className="h-4 w-4 text-emerald-400 shrink-0" />
+  <span>Support: <a href="mailto:info@wellora.com" className="hover:text-emerald-400 transition-colors">info@wellora.com</a></span>
+</li>
             </ul>
           </div>
 

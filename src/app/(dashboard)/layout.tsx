@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className="hidden w-64 shrink-0 border-r border-gray-200 bg-white lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-gray-200 px-6">
           <Link href="/" aria-label="WellOra home">
-            <Logo />
+            <Logo lightText={false} />
           </Link>
         </div>
         <nav className="flex-1 space-y-1 p-4" aria-label="Dashboard navigation">
@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
           <Link className="lg:hidden" href="/" aria-label="WellOra home">
-            <Logo />
+            <Logo lightText={false} />
           </Link>
           <p className="ml-auto text-sm font-medium text-gray-600">
             WellOra Dashboard

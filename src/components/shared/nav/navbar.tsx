@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, ChevronDown, UserPlus, LogIn, HelpCircle } from "lucide-react";
+import { Menu, X, ChevronDown, UserPlus, LogIn } from "lucide-react";
 
 import Logo from "../logo/logo";
 
@@ -38,7 +38,7 @@ function Navbar() {
 
   return (
     <header className="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-all duration-300">
-      <nav className="bg-slate-950/70 backdrop-blur-xl border border-white/15 rounded-full px-6 shadow-2xl shadow-black/40">
+      <nav className="bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-full px-6">
         <div className="flex justify-between items-center h-16">
           {/* 1. Logo Section */}
           <div className="flex-shrink-0 flex items-center">
@@ -53,7 +53,7 @@ function Navbar() {
               href="/available-today"
               className={`text-sm font-medium transition-all duration-200 ${
                 isActive("/available-today")
-                  ? "text-emerald-400 font-bold drop-shadow-sm"
+                  ? "text-emerald-400 font-bold"
                   : "text-slate-200 hover:text-emerald-400"
               }`}
             >
@@ -64,7 +64,7 @@ function Navbar() {
               href="/departments"
               className={`text-sm font-medium transition-all duration-200 ${
                 isActive("/departments")
-                  ? "text-emerald-400 font-bold drop-shadow-sm"
+                  ? "text-emerald-400 font-bold"
                   : "text-slate-200 hover:text-emerald-400"
               }`}
             >
@@ -75,7 +75,7 @@ function Navbar() {
               href="/doctors"
               className={`text-sm font-medium transition-all duration-200 ${
                 isActive("/doctors")
-                  ? "text-emerald-400 font-bold drop-shadow-sm"
+                  ? "text-emerald-400 font-bold"
                   : "text-slate-200 hover:text-emerald-400"
               }`}
             >
@@ -109,7 +109,7 @@ function Navbar() {
               {/* Dropdown Menu Overlay */}
               {isDropdownOpen && (
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-52 bg-slate-900/95 border border-white/10 rounded-2xl shadow-2xl py-2 z-50 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150
+                  className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-52 bg-slate-900 border border-white/10 rounded-2xl py-2 z-50 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150
                   before:absolute before:-top-3 before:left-0 before:w-full before:h-4 before:content-['']"
                 >
                   <Link
@@ -118,7 +118,7 @@ function Navbar() {
                     className={`block px-4 py-2.5 text-sm transition-colors ${
                       isActive("/services")
                         ? "bg-emerald-500/20 text-emerald-400 font-bold border-l-4 border-emerald-500"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-emerald-400"
+                        : "text-slate-200 hover:bg-slate-800 hover:text-emerald-400"
                     }`}
                   >
                     Services
@@ -130,7 +130,7 @@ function Navbar() {
                     className={`block px-4 py-2.5 text-sm transition-colors ${
                       isActive("/about-us")
                         ? "bg-emerald-500/20 text-emerald-400 font-bold border-l-4 border-emerald-500"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-emerald-400"
+                        : "text-slate-200 hover:bg-slate-800 hover:text-emerald-400"
                     }`}
                   >
                     About Us
@@ -142,7 +142,7 @@ function Navbar() {
                     className={`block px-4 py-2.5 text-sm transition-colors ${
                       isActive("/contact-us")
                         ? "bg-emerald-500/20 text-emerald-400 font-bold border-l-4 border-emerald-500"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-emerald-400"
+                        : "text-slate-200 hover:bg-slate-800 hover:text-emerald-400"
                     }`}
                   >
                     Contact Us
@@ -154,7 +154,7 @@ function Navbar() {
                     className={`block px-4 py-2.5 text-sm transition-colors ${
                       isActive("/help")
                         ? "bg-emerald-500/20 text-emerald-400 font-bold border-l-4 border-emerald-500"
-                        : "text-slate-200 hover:bg-slate-800/80 hover:text-emerald-400"
+                        : "text-slate-200 hover:bg-slate-800 hover:text-emerald-400"
                     }`}
                   >
                     Help & Support
@@ -164,23 +164,29 @@ function Navbar() {
             </div>
           </div>
 
-          {/* 3. Action Buttons */}
+          {/* 3. Action Buttons (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Join as Doctor Button */}
             <Link
-              href="/apply-doctor"
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 ${
-                isActive("/apply-doctor")
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400"
-                  : "text-emerald-400 hover:text-white border border-emerald-500/40 hover:bg-emerald-600/20"
+              href="/applyDoctor"
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-colors duration-200 border ${
+                isActive("/applyDoctor")
+                  ? "bg-emerald-500 text-slate-950 border-emerald-400"
+                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-400 active:scale-95"
               }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>Join as Doctor</span>
             </Link>
 
+            {/* Sign In Button */}
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-5 py-2 rounded-full transition-all shadow-lg shadow-emerald-600/30 hover:scale-[1.02] active:scale-95"
+              className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs sm:text-sm font-bold text-slate-950 transition-colors duration-200 ${
+                isActive("/login")
+                  ? "bg-teal-400"
+                  : "bg-teal-400 hover:bg-cyan-300 active:scale-95"
+              }`}
             >
               <LogIn className="w-4 h-4" />
               <span>Sign In</span>
@@ -191,7 +197,7 @@ function Navbar() {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/60"
+              className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-800"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -201,7 +207,7 @@ function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="mt-2 md:hidden bg-slate-900/95 border border-white/10 rounded-3xl p-5 space-y-2 backdrop-blur-2xl shadow-2xl">
+        <div className="mt-2 md:hidden bg-slate-900 border border-white/10 rounded-3xl p-5 space-y-2 backdrop-blur-2xl">
           <Link
             href="/available-today"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -280,18 +286,19 @@ function Navbar() {
             Help & Support
           </Link>
 
-          <div className="pt-3 flex flex-col gap-2">
+          {/* Action Buttons (Mobile Drawer) */}
+          <div className="pt-3 flex flex-col gap-2.5">
             <Link
-              href="/apply-doctor"
+              href="/applyDoctor"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 rounded-full text-emerald-400 border border-emerald-500/40 text-sm font-semibold"
+              className="w-full text-center py-2.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/40 text-sm font-bold hover:bg-emerald-500 hover:text-slate-950 transition-colors"
             >
               Join as Doctor
             </Link>
             <Link
               href="/login"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white text-sm font-semibold"
+              className="w-full text-center py-2.5 rounded-full bg-teal-400 hover:bg-cyan-300 text-slate-950 text-sm font-bold transition-colors"
             >
               Sign In
             </Link>

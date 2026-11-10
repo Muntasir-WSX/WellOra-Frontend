@@ -3,12 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search,
   HelpCircle,
-  CalendarCheck,
-  CreditCard,
-  FileText,
-  UserCheck,
   PhoneCall,
   Mail,
   ChevronDown,
@@ -19,15 +14,15 @@ import {
 import Link from "next/link";
 
 interface FAQItem {
+  id: number;
   question: string;
   answer: string;
   category: string;
 }
 
 export default function HelpPage() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [openFaqId, setOpenFaqId] = useState<number | null>(1);
 
   const categories = [
     { id: "all", label: "All Questions" },
@@ -39,36 +34,42 @@ export default function HelpPage() {
 
   const faqs: FAQItem[] = [
     {
+      id: 1,
       category: "appointment",
       question: "How do I book a 20-minute doctor appointment?",
       answer:
         "Go to the 'Doctors' or 'Available Today' page, select your preferred specialist, pick an available 20-minute slot, and complete the instant bKash payment to confirm your booking.",
     },
     {
+      id: 2,
       category: "appointment",
       question: "Can I reschedule or cancel my booked slot?",
       answer:
         "Yes, you can cancel your appointment up to 1 hour before the scheduled start time from your Patient Dashboard to receive an automated refund.",
     },
     {
+      id: 3,
       category: "payment",
       question: "Which payment methods are supported on WellOra?",
       answer:
         "We support instant online bKash payments, Nagad, Rocket, as well as Visa, Mastercard, and American Express debit/credit cards via our secure gateway.",
     },
     {
+      id: 4,
       category: "payment",
       question: "How long does a refund take after cancellation?",
       answer:
         "Automated refunds are initiated instantly. For bKash/Nagad, it reflects in your MFS account within 1-2 hours. For cards, it takes 3-5 business days.",
     },
     {
+      id: 5,
       category: "prescription",
       question: "Where can I download my E-Prescription?",
       answer:
         "Once your doctor completes the consultation, a PDF version of your E-Prescription will automatically appear in your Patient Dashboard and will also be sent to your registered email.",
     },
     {
+      id: 6,
       category: "doctor",
       question: "Are all doctors on WellOra BMDC certified?",
       answer:
@@ -76,14 +77,17 @@ export default function HelpPage() {
     },
   ];
 
-  const filteredFaqs = faqs.filter((faq) => {
-    const matchesCategory =
-      activeCategory === "all" || faq.category === activeCategory;
-    const matchesSearch =
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredFaqs = faqs.filter(
+    (faq) => activeCategory === "all" || faq.category === activeCategory
+  );
+
+  const handleCategoryChange = (catId: string) => {
+    setActiveCategory(catId);
+    const firstMatch = faqs.find(
+      (faq) => catId === "all" || faq.category === catId
+    );
+    setOpenFaqId(firstMatch ? firstMatch.id : null);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 select-none pt-24 pb-20">
@@ -93,14 +97,14 @@ export default function HelpPage() {
           <img
             src="https://res.cloudinary.com/dnk0bvpym/image/upload/v1794296412/banner6_rqu8k8.jpg"
             alt="WellOra Help & Support Banner"
-            className="w-full h-[400px] sm:h-[480px] object-cover object-center"
+            className="w-full h-[350px] sm:h-[420px] object-cover object-center"
           />
           {/* Dark Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/40" />
 
           {/* Text Content Overlay */}
           <div className="absolute inset-0 flex items-center px-6 sm:px-12 lg:px-16">
-            <div className="max-w-2xl space-y-5 w-full">
+            <div className="max-w-2xl space-y-4 w-full">
               <motion.div
                 initial={{ opacity: 0, y: -15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -120,22 +124,14 @@ export default function HelpPage() {
                 How Can We Help You Today?
               </motion.h1>
 
-              {/* Search Bar Input */}
-              <motion.div
+              <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="relative max-w-xl pt-2"
+                className="text-xs sm:text-sm text-slate-300 max-w-lg leading-relaxed"
               >
-                <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search questions (e.g., booking, bKash, prescription)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-white/20 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xl text-sm font-medium"
-                />
-              </motion.div>
+                Find answers to common questions about doctor appointment slots, bKash payment verification, and downloading e-prescriptions.
+              </motion.p>
             </div>
           </div>
         </div>
@@ -144,8 +140,11 @@ export default function HelpPage() {
       {/* 2. QUICK SUPPORT CARDS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
-            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+          <a
+            href="tel:+8801700000000"
+            className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all flex items-start gap-4 group"
+          >
+            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <PhoneCall className="w-6 h-6" />
             </div>
             <div>
@@ -153,10 +152,13 @@ export default function HelpPage() {
               <p className="text-xs text-slate-500 mt-1">Talk to our medical desk assistants instantly.</p>
               <p className="text-sm font-extrabold text-emerald-600 mt-2">+880 1700-000000</p>
             </div>
-          </div>
+          </a>
 
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
-            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+          <a
+            href="mailto:support@wellora.com"
+            className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all flex items-start gap-4 group"
+          >
+            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <Mail className="w-6 h-6" />
             </div>
             <div>
@@ -164,10 +166,10 @@ export default function HelpPage() {
               <p className="text-xs text-slate-500 mt-1">Get written resolution for your inquiries.</p>
               <p className="text-sm font-extrabold text-emerald-600 mt-2">support@wellora.com</p>
             </div>
-          </div>
+          </a>
 
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
-            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all flex items-start gap-4 group">
+            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <Headphones className="w-6 h-6" />
             </div>
             <div>
@@ -186,7 +188,7 @@ export default function HelpPage() {
       </section>
 
       {/* 3. FAQ ACCORDION SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
+      <section id="faq-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Frequently Asked Questions
@@ -201,7 +203,7 @@ export default function HelpPage() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => handleCategoryChange(cat.id)}
               className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
                 activeCategory === cat.id
                   ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
@@ -216,15 +218,15 @@ export default function HelpPage() {
         {/* FAQs List */}
         <div className="max-w-3xl mx-auto space-y-4">
           {filteredFaqs.length > 0 ? (
-            filteredFaqs.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
+            filteredFaqs.map((faq) => {
+              const isOpen = openFaqId === faq.id;
               return (
                 <div
-                  key={index}
+                  key={faq.id}
                   className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all"
                 >
                   <button
-                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                    onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
                     className="w-full text-left p-5 flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base hover:text-emerald-600 transition-colors"
                   >
                     <span>{faq.question}</span>
@@ -257,7 +259,7 @@ export default function HelpPage() {
             <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
               <HelpCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-600 font-semibold text-sm">
-                No matching questions found for "{searchQuery}".
+                No questions found in this category.
               </p>
             </div>
           )}

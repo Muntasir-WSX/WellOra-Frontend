@@ -1,9 +1,9 @@
 "use client";
 
+import { ChevronDown, LogIn, Menu, UserPlus, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
-import { Menu, X, ChevronDown, UserPlus, LogIn } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import Logo from "../logo/logo";
 
@@ -42,7 +42,11 @@ function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* 1. Logo Section */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" aria-label="WellOra home" className="flex items-center">
+            <Link
+              href="/"
+              aria-label="WellOra home"
+              className="flex items-center"
+            >
               <Logo showSlogan={false} lightText={true} />
             </Link>
           </div>
@@ -168,9 +172,9 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {/* Join as Doctor Button */}
             <Link
-              href="/applyDoctor"
+              href="/apply-doctor"
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-colors duration-200 border ${
-                isActive("/applyDoctor")
+                isActive("/apply-doctor")
                   ? "bg-emerald-500 text-slate-950 border-emerald-400"
                   : "bg-emerald-500/10 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-400 active:scale-95"
               }`}
@@ -199,7 +203,11 @@ function Navbar() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-800"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -289,7 +297,7 @@ function Navbar() {
           {/* Action Buttons (Mobile Drawer) */}
           <div className="pt-3 flex flex-col gap-2.5">
             <Link
-              href="/applyDoctor"
+              href="/apply-doctor"
               onClick={() => setIsMobileMenuOpen(false)}
               className="w-full text-center py-2.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/40 text-sm font-bold hover:bg-emerald-500 hover:text-slate-950 transition-colors"
             >

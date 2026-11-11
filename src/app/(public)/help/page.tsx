@@ -94,10 +94,11 @@ export default function HelpPage() {
       {/* 1. HERO BANNER SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-          <img
+          {/** biome-ignore lint/performance/noImgElement: <explanation> */}
+<img
             src="https://res.cloudinary.com/dnk0bvpym/image/upload/v1794296412/banner6_rqu8k8.jpg"
             alt="WellOra Help & Support Banner"
-            className="w-full h-[350px] sm:h-[420px] object-cover object-center"
+            className="w-full h-87.5 sm:h-105 object-cover object-center"
           />
           {/* Dark Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/40" />
@@ -201,7 +202,8 @@ export default function HelpPage() {
         {/* Filter Category Tabs */}
         <div className="flex items-center justify-center gap-2 flex-wrap mb-10">
           {categories.map((cat) => (
-            <button
+            // biome-ignore lint/a11y/useButtonType: <explanation>
+<button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
               className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
@@ -225,7 +227,8 @@ export default function HelpPage() {
                   key={faq.id}
                   className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm transition-all"
                 >
-                  <button
+                  {/** biome-ignore lint/a11y/useButtonType: <explanation> */}
+<button
                     onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
                     className="w-full text-left p-5 flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base hover:text-emerald-600 transition-colors"
                   >

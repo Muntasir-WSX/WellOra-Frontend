@@ -15,12 +15,22 @@ export async function apiRequest<T = ApiResponse>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  const isFormData = init.body instanceof FormData;
+
+  // headers safe set
+  const headers: Record<string, string> = {
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(init.headers as Record<string, string>),
+  };
+
+  // If FormData, explicitly delete Content-Type so browser sets boundary correctly
+  if (isFormData && headers["Content-Type"]) {
+    delete headers["Content-Type"];
+  }
+
   const response = await fetch(`${apiBaseUrl}/api/v1${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
+    headers,
     credentials: init.credentials || "include",
   });
 

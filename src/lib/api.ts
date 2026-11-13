@@ -1,55 +1,44 @@
-const configuredApiUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+const rawBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000/api/v1";
 
-const apiBaseUrl = (configuredApiUrl || "http://localhost:5000")
-  .replace(/\/+$/, "")
-  .replace(/\/api\/v1$/, "");
+const normalizedUrl = rawBaseUrl.replace(/\/+$/, "");
+const BASE_URL = normalizedUrl.endsWith("/api/v1")
+  ? normalizedUrl
+  : `${normalizedUrl}/api/v1`;
 
-export interface ApiResponse {
-  success: boolean;
-  message?: string;
-  [key: string]: unknown;
-}
-
-export async function apiRequest<T = ApiResponse>(
-  path: string,
-  init: RequestInit = {},
+export async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {},
 ): Promise<T> {
-  const isFormData = init.body instanceof FormData;
+  const isFormData = options.body instanceof FormData;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
-  // headers safe set
   const headers: Record<string, string> = {
-    ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    ...(init.headers as Record<string, string>),
+    ...(options.headers as Record<string, string>),
   };
 
-  // If FormData, explicitly delete Content-Type so browser sets boundary correctly
-  if (isFormData && headers["Content-Type"]) {
-    delete headers["Content-Type"];
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
   }
 
-  const response = await fetch(`${apiBaseUrl}/api/v1${path}`, {
-    ...init,
+  if (token && !headers.Authorization) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    credentials: "include",
     headers,
-    credentials: init.credentials || "include",
   });
 
-  const contentType = response.headers.get("content-type") || "";
-  const data = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
+  const data = await res.json();
 
-  if (!response.ok) {
-    const message =
-      typeof data === "object" &&
-      data !== null &&
-      "message" in data &&
-      typeof data.message === "string"
-        ? data.message
-        : "The request could not be completed.";
-
-    throw new Error(message);
+  if (!res.ok) {
+    throw new Error(data?.message || "Something went wrong");
   }
 
-  return data as T;
+  return data;
 }

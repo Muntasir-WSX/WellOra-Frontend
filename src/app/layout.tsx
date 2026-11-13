@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -29,8 +30,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}
     >
-      <body className="min-h-screen flex flex-col font-sans bg-gray-50 text-gray-900">
-        {children}
+      <body
+        suppressHydrationWarning
+        className="min-h-screen flex flex-col font-sans bg-gray-50 text-gray-900"
+      >
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

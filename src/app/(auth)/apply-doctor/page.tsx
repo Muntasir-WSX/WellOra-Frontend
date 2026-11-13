@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -21,6 +20,10 @@ import {
   EyeOff,
   KeyRound,
   Sparkles,
+  UploadCloud,
+  X,
+  File,
+  Files,
 } from "lucide-react";
 
 import {
@@ -31,6 +34,8 @@ import {
 
 export default function ApplyDoctorPage() {
   const router = useRouter();
+  const resumeInputRef = useRef<HTMLInputElement | null>(null);
+  const additionalInputRef = useRef<HTMLInputElement | null>(null);
 
   // Multi-step State (1: Application Form, 2: OTP Verification)
   const [step, setStep] = useState<1 | 2>(1);
@@ -56,6 +61,10 @@ export default function ApplyDoctorPage() {
     bio: "",
   });
 
+  // File States
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
+
   // Step 2 OTP State
   const [otp, setOtp] = useState("");
 
@@ -68,15 +77,48 @@ export default function ApplyDoctorPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle Required Resume Selection
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setResumeFile(file);
+      setErrorMessage("");
+    }
+  };
+
+  // Handle Optional Additional Files Selection
+  const handleAdditionalFilesChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length > 0) {
+      setAdditionalFiles((prev) => [...prev, ...files]);
+    }
+  };
+
+  const removeAdditionalFile = (index: number) => {
+    setAdditionalFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   // Step 1: Doctor Application Submit
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
 
+    if (!resumeFile) {
+      setErrorMessage("Resume file is required for doctor application.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await applyDoctorApi(formData);
+      const res = await applyDoctorApi(formData, {
+        resume: resumeFile,
+        additionalFiles,
+      });
+
       if (res?.success || res?.statusCode === 200 || res?.statusCode === 201) {
         setSuccessMessage(
           "Application submitted successfully! Please check your email for the verification OTP."
@@ -84,7 +126,8 @@ export default function ApplyDoctorPage() {
         setStep(2);
       } else {
         setErrorMessage(
-          res?.message || "Failed to submit doctor application. Please check your inputs."
+          res?.message ||
+            "Failed to submit doctor application. Please check your inputs."
         );
       }
     } catch (err: any) {
@@ -133,7 +176,6 @@ export default function ApplyDoctorPage() {
   return (
     <div className="w-full bg-slate-50 select-none pt-4 sm:pt-6 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Banner Section */}
         <div className="relative rounded-3xl overflow-hidden shadow-xl mb-6 border border-slate-200/80 min-h-[220px] sm:min-h-[260px] flex items-end">
           <img
@@ -141,7 +183,7 @@ export default function ApplyDoctorPage() {
             alt="WellOra Doctor Application Banner"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
-          
+
           {/* Gradient Overlay for Text Visibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-slate-950/20" />
 
@@ -430,6 +472,130 @@ export default function ApplyDoctorPage() {
               </div>
             </div>
 
+            {/* 3. Supporting Documents (Resume Required) */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <UploadCloud className="w-5 h-5 text-emerald-600" />
+                <span>Supporting Documents</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Required Resume Upload */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Resume / Curriculum Vitae (CV) *
+                  </label>
+
+                  <input
+                    ref={resumeInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handleResumeChange}
+                    className="hidden"
+                  />
+
+                  {!resumeFile ? (
+                    <div
+                      onClick={() => resumeInputRef.current?.click()}
+                      className="cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50/40 p-5 text-center transition-all flex flex-col items-center justify-center gap-2"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <UploadCloud className="w-5 h-5" />
+                      </div>
+                      <div className="text-xs font-bold text-slate-700">
+                        Click to upload Resume *
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        PDF, DOC, or DOCX (Required)
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                          <File className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 truncate">
+                            {resumeFile.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {(resumeFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResumeFile(null);
+                          if (resumeInputRef.current) {
+                            resumeInputRef.current.value = "";
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Remove Resume"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional Additional Certificates */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Additional Certificates (Optional)
+                  </label>
+
+                  <input
+                    ref={additionalInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleAdditionalFilesChange}
+                    className="hidden"
+                  />
+
+                  <div
+                    onClick={() => additionalInputRef.current?.click()}
+                    className="cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-slate-50 hover:bg-slate-100/70 p-5 text-center transition-all flex flex-col items-center justify-center gap-2"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-slate-200/80 text-slate-600 flex items-center justify-center">
+                      <Files className="w-5 h-5" />
+                    </div>
+                    <div className="text-xs font-bold text-slate-700">
+                      Attach BMDC / Degree Certificates
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      Multiple files allowed (Optional)
+                    </div>
+                  </div>
+
+                  {additionalFiles.length > 0 && (
+                    <div className="mt-2.5 space-y-1.5">
+                      {additionalFiles.map((file, idx) => (
+                        <div
+                          key={`${file.name}-${idx}`}
+                          className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-100 text-xs"
+                        >
+                          <span className="truncate font-medium text-slate-700">
+                            {file.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeAdditionalFile(idx)}
+                            className="text-slate-400 hover:text-red-500 shrink-0"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -465,7 +631,10 @@ export default function ApplyDoctorPage() {
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
                 We sent a 6-digit verification code (OTP) to <br />
-                <span className="font-bold text-slate-800">{formData.email}</span>.
+                <span className="font-bold text-slate-800">
+                  {formData.email}
+                </span>
+                .
               </p>
             </div>
 
@@ -507,7 +676,6 @@ export default function ApplyDoctorPage() {
             </button>
           </motion.div>
         )}
-
       </div>
     </div>
   );

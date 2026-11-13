@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { loginUserApi } from "@/app/(auth)/login/login";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { refreshUser } = useAuth();
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,11 +28,19 @@ export default function LoginPage() {
     try {
       const res = await loginUserApi(formData);
       if (res.success) {
+       if (res.data?.accessToken) {
+          localStorage.setItem("accessToken", res.data.accessToken);
+        }
+        await refreshUser();
         router.push("/");
         router.refresh();
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to log in. Please check your credentials.");
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to log in. Please check your credentials.",
+      );
     } finally {
       setLoading(false);
     }
@@ -40,8 +51,8 @@ export default function LoginPage() {
       
       {/* Left Side Banner */}
       <div className="md:col-span-5 relative hidden md:block h-full">
-        {/** biome-ignore lint/performance/noImgElement: <explanation> */}
-<img
+        {/* biome-ignore lint/performance/noImgElement */}
+        <img
           src="https://res.cloudinary.com/dnk0bvpym/image/upload/v1793982500/login_lwa5jq.jpg"
           alt="WellOra Login Portal"
           className="w-full h-full object-cover object-center absolute inset-0"
@@ -94,14 +105,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label
+              htmlFor="email"
+              className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2"
+            >
               Email Address
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="email"
+                id="email"
                 name="email"
                 required
                 placeholder="patient@example.com"
@@ -114,7 +128,10 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <label
+                htmlFor="password"
+                className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
+              >
                 Password
               </label>
               <Link
@@ -128,6 +145,7 @@ export default function LoginPage() {
               <Lock className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type={showPassword ? "text" : "password"}
+                id="password"
                 name="password"
                 required
                 placeholder="••••••••"

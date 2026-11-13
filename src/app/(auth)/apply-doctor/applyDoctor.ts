@@ -22,15 +22,19 @@ export interface IVerifyDoctorEmailPayload {
 // 1. Doctor Apply API
 export const applyDoctorApi = async (
   values: IApplyDoctorFormValues,
-  files?: { resume?: File; additionalFiles?: File[] }
+  files: { resume?: File | null; additionalFiles?: File[] }
 ) => {
+  if (!files?.resume) {
+    throw new Error("Resume file is required");
+  }
+
   const formData = new FormData();
 
   const dataPayload = {
     user: {
       name: values.name.trim(),
       email: values.email.trim().toLowerCase(),
-      password: values.password, // 👈 Password added here!
+      password: values.password,
     },
     doctor: {
       licenseNumber: values.licenseNumber.trim(),
@@ -45,11 +49,9 @@ export const applyDoctorApi = async (
   };
 
   formData.append("data", JSON.stringify(dataPayload));
+  formData.append("resume", files.resume);
 
-  // Optional file uploads
-  if (files?.resume) {
-    formData.append("resume", files.resume);
-  }
+  // Optional additional files
   if (files?.additionalFiles && files.additionalFiles.length > 0) {
     files.additionalFiles.forEach((file) => {
       formData.append("additionalFiles", file);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {User,Mail,Lock,Phone,ArrowLeft,Eye,EyeOff,AlertCircle,UserPlus,KeyRound,CheckCircle2,} from "lucide-react";
 import {registerPatientApi,verifyPatientEmailApi,IRegisterPayload,} from "./register";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
+  const { refreshUser } = useAuth();
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -52,7 +53,7 @@ export default function RegisterPage() {
     setErrorMessage("");
 
     try {
-      const res = await registerPatientApi(formData);
+      const res = (await registerPatientApi(formData)) as { success: boolean };
       if (res.success) {
         setSuccessMessage(
           "OTP sent to your email. Please verify to complete registration.",
@@ -74,12 +75,20 @@ export default function RegisterPage() {
     setErrorMessage("");
 
     try {
-      const res = await verifyPatientEmailApi({
+      const res = (await verifyPatientEmailApi({
         email: formData.email,
         otp,
-      });
+      })) as {
+        success: boolean;
+        data?: { accessToken?: string };
+      };
 
       if (res.success) {
+        const token = res.data?.accessToken;
+        if (token) {
+          localStorage.setItem("accessToken", token);
+        }
+        await refreshUser();
         router.push("/");
         router.refresh();
       }

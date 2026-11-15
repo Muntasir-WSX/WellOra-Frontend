@@ -1,11 +1,18 @@
 import { apiRequest } from "@/lib/api";
 
+export interface IDepartmentOption {
+  id: string;
+  name: string;
+  slug?: string;
+}
+
 export interface IApplyDoctorFormValues {
   name: string;
   email: string;
   password?: string;
   contactNumber?: string;
   address?: string;
+  departmentId: string;
   licenseNumber: string;
   experienceYears?: number;
   specialization: string;
@@ -19,13 +26,30 @@ export interface IVerifyDoctorEmailPayload {
   otp: string;
 }
 
+// Fetch all departments for dropdown
+export const getDepartmentsApi = async (): Promise<{
+  success: boolean;
+  data: IDepartmentOption[];
+}> => {
+  return apiRequest("/department", {
+    method: "GET",
+  });
+};
+
 // 1. Doctor Apply API
 export const applyDoctorApi = async (
   values: IApplyDoctorFormValues,
-  files: { resume?: File | null; additionalFiles?: File[] }
+  files: {
+    profilePhoto?: File | null;
+    resume?: File | null;
+    additionalFiles?: File[];
+  },
 ) => {
   if (!files?.resume) {
     throw new Error("Resume file is required");
+  }
+  if (!values.departmentId) {
+    throw new Error("Please select a department");
   }
 
   const formData = new FormData();
@@ -37,6 +61,7 @@ export const applyDoctorApi = async (
       password: values.password,
     },
     doctor: {
+      departmentId: values.departmentId,
       licenseNumber: values.licenseNumber.trim(),
       specialization: values.specialization.trim(),
       qualifications: values.qualifications.trim(),
@@ -50,6 +75,11 @@ export const applyDoctorApi = async (
 
   formData.append("data", JSON.stringify(dataPayload));
   formData.append("resume", files.resume);
+
+  // Optional Professional Profile Photo
+  if (files?.profilePhoto) {
+    formData.append("profilePhoto", files.profilePhoto);
+  }
 
   // Optional additional files
   if (files?.additionalFiles && files.additionalFiles.length > 0) {
@@ -66,7 +96,7 @@ export const applyDoctorApi = async (
 
 // 2. Email Verification API
 export const verifyDoctorEmailApi = async (
-  payload: IVerifyDoctorEmailPayload
+  payload: IVerifyDoctorEmailPayload,
 ) => {
   return apiRequest("/doctor/apply-as-doctor/verify-email", {
     method: "POST",

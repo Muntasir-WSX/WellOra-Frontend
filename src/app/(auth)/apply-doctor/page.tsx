@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,35 +24,42 @@ import {
   X,
   File,
   Files,
+  Camera,
+  Building2,
 } from "lucide-react";
 
 import {
   applyDoctorApi,
   verifyDoctorEmailApi,
+  getDepartmentsApi,
   IApplyDoctorFormValues,
+  IDepartmentOption,
 } from "./applyDoctor";
 
 export default function ApplyDoctorPage() {
   const router = useRouter();
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const resumeInputRef = useRef<HTMLInputElement | null>(null);
   const additionalInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Multi-step State (1: Application Form, 2: OTP Verification)
   const [step, setStep] = useState<1 | 2>(1);
 
-  // UI States
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Form Data State
+  // Departments list
+  const [departments, setDepartments] = useState<IDepartmentOption[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
+
   const [formData, setFormData] = useState<IApplyDoctorFormValues>({
     name: "",
     email: "",
     password: "",
     contactNumber: "",
     address: "",
+    departmentId: "",
     licenseNumber: "",
     experienceYears: undefined,
     specialization: "",
@@ -62,22 +69,94 @@ export default function ApplyDoctorPage() {
   });
 
   // File States
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
-
+  const COMMON_15_DEPARTMENT_NAMES = [
+    "Cardiology",
+    "Neurology",
+    "Orthopaedics & Joint Replacement Surgery",
+    "Obstetrics and Gynaecology",
+    "Paediatrics",
+    "Dermatology & Venereology",
+    "Gastroenterology & Hepatology",
+    "ENT & Head Neck Surgery",
+    "Ophthalmology",
+    "Endocrinology & Diabetology",
+    "Internal Medicine",
+    "General & Laparoscopic Surgery",
+    "Nephrology",
+    "Respiratory Medicine",
+    "Psychiatry & Mental Health",
+  ];
   // Step 2 OTP State
   const [otp, setOtp] = useState("");
+
+useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await getDepartmentsApi();
+        const apiList = Array.isArray(res?.data) ? res.data : [];
+        const sortedDepartments = COMMON_15_DEPARTMENT_NAMES.map((deptName) =>
+          apiList.find(
+            (d) => d.name.trim().toLowerCase() === deptName.toLowerCase(),
+          ),
+        ).filter((d): d is IDepartmentOption => Boolean(d));
+
+        // ডাটাবেজে অন্য কোনো ডিপার্টমেন্ট থাকলে সেগুলোও শেষে রাখা
+        const remainingDepartments = apiList.filter(
+          (d) =>
+            !COMMON_15_DEPARTMENT_NAMES.some(
+              (name) => name.toLowerCase() === d.name.trim().toLowerCase(),
+            ),
+        );
+
+        setDepartments([...sortedDepartments, ...remainingDepartments]);
+      } catch (err) {
+        console.error("Failed to load departments:", err);
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
+
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle Required Resume Selection
+  // Handle Optional Professional Photo Selection
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setErrorMessage("Please select a valid image file (JPG, PNG, WebP).");
+        return;
+      }
+      setProfilePhotoFile(file);
+      setPhotoPreviewUrl(URL.createObjectURL(file));
+      setErrorMessage("");
+    }
+  };
+
+  const removeProfilePhoto = () => {
+    setProfilePhotoFile(null);
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPreviewUrl(null);
+    }
+    if (photoInputRef.current) {
+      photoInputRef.current.value = "";
+    }
+  };
+
   const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -86,9 +165,8 @@ export default function ApplyDoctorPage() {
     }
   };
 
-  // Handle Optional Additional Files Selection
   const handleAdditionalFilesChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     if (files.length > 0) {
@@ -100,11 +178,20 @@ export default function ApplyDoctorPage() {
     setAdditionalFiles((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // Step 1: Doctor Application Submit
+  // Fallback Avatar Preview based on Name/Email if no photo uploaded
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    formData.name || formData.email || "Doctor",
+  )}&background=10b981&color=ffffff&size=128&bold=true`;
+
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
+
+    if (!formData.departmentId) {
+      setErrorMessage("Please select your medical department.");
+      return;
+    }
 
     if (!resumeFile) {
       setErrorMessage("Resume file is required for doctor application.");
@@ -115,33 +202,33 @@ export default function ApplyDoctorPage() {
 
     try {
       const res = await applyDoctorApi(formData, {
+        profilePhoto: profilePhotoFile,
         resume: resumeFile,
         additionalFiles,
       });
 
       if (res?.success || res?.statusCode === 200 || res?.statusCode === 201) {
         setSuccessMessage(
-          "Application submitted successfully! Please check your email for the verification OTP."
+          "Application submitted successfully! Please check your email for the verification OTP.",
         );
         setStep(2);
       } else {
         setErrorMessage(
           res?.message ||
-            "Failed to submit doctor application. Please check your inputs."
+            "Failed to submit doctor application. Please check your inputs.",
         );
       }
     } catch (err: any) {
       setErrorMessage(
         err?.response?.data?.message ||
           err?.message ||
-          "Failed to process request. Please check your network and try again."
+          "Failed to process request. Please check your network and try again.",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: OTP Email Verification Submit
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -166,7 +253,7 @@ export default function ApplyDoctorPage() {
       setErrorMessage(
         err?.response?.data?.message ||
           err?.message ||
-          "OTP verification failed. Please try again."
+          "OTP verification failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -183,11 +270,7 @@ export default function ApplyDoctorPage() {
             alt="WellOra Doctor Application Banner"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
-
-          {/* Gradient Overlay for Text Visibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-slate-950/20" />
-
-          {/* Banner Content */}
           <div className="relative z-10 p-6 sm:p-8 w-full text-white space-y-2.5">
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold backdrop-blur-md">
@@ -195,7 +278,6 @@ export default function ApplyDoctorPage() {
                 <span>BMDC Registered Doctors Only</span>
               </div>
             </div>
-
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Join <span className="text-emerald-400">WellOra</span> as a Medical Specialist
             </h1>
@@ -205,7 +287,7 @@ export default function ApplyDoctorPage() {
           </div>
         </div>
 
-        {/* Global Error & Success Alerts */}
+        {/* Alerts */}
         <AnimatePresence mode="wait">
           {errorMessage && (
             <motion.div
@@ -240,6 +322,59 @@ export default function ApplyDoctorPage() {
             onSubmit={handleApplySubmit}
             className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl space-y-8"
           >
+            {/* Optional Professional Profile Photo Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div className="relative shrink-0">
+                <img
+                  src={photoPreviewUrl || fallbackAvatar}
+                  alt="Doctor Profile Preview"
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500/40 shadow-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-md transition-colors"
+                  title="Upload Professional Photo"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="text-center sm:text-left flex-1 space-y-1">
+                <h4 className="text-sm font-black text-slate-900">
+                  Professional Profile Photo <span className="text-xs font-semibold text-slate-400">(Optional)</span>
+                </h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Upload a clear headshot for your public doctor profile. If skipped, a default avatar from your email/name will be used automatically.
+                </p>
+                <div className="pt-1.5 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-emerald-500 text-xs font-bold text-slate-700 hover:text-emerald-600 transition-colors"
+                  >
+                    {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+                  </button>
+                  {profilePhotoFile && (
+                    <button
+                      type="button"
+                      onClick={removeProfilePhoto}
+                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* 1. Account Details */}
             <div className="space-y-4">
               <h3 className="text-lg font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -248,7 +383,6 @@ export default function ApplyDoctorPage() {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Full Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Full Name *
@@ -259,7 +393,7 @@ export default function ApplyDoctorPage() {
                       type="text"
                       name="name"
                       required
-                      placeholder="Enter Your Name"
+                      placeholder="Dr. Full Name"
                       value={formData.name}
                       onChange={handleChange}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
@@ -267,7 +401,6 @@ export default function ApplyDoctorPage() {
                   </div>
                 </div>
 
-                {/* Email Address */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Email Address *
@@ -278,7 +411,7 @@ export default function ApplyDoctorPage() {
                       type="email"
                       name="email"
                       required
-                      placeholder="Enter Your Mail"
+                      placeholder="doctor@example.com"
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
@@ -286,7 +419,6 @@ export default function ApplyDoctorPage() {
                   </div>
                 </div>
 
-                {/* Password */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Password *
@@ -307,16 +439,11 @@ export default function ApplyDoctorPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                {/* Contact Number */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Contact Phone Number
@@ -326,7 +453,7 @@ export default function ApplyDoctorPage() {
                     <input
                       type="text"
                       name="contactNumber"
-                      placeholder="Enter Your Number"
+                      placeholder="017XXXXXXXX"
                       value={formData.contactNumber || ""}
                       onChange={handleChange}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
@@ -344,7 +471,34 @@ export default function ApplyDoctorPage() {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* License Number (BMDC Reg Number) */}
+                {/* Department Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Department *
+                  </label>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <select
+                      name="departmentId"
+                      required
+                      disabled={loadingDepartments}
+                      value={formData.departmentId}
+                      onChange={handleChange}
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                    >
+                      <option value="">
+                        {loadingDepartments ? "Loading departments..." : "Select a Department"}
+                      </option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* License Number */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     License / BMDC Reg. Number *
@@ -435,7 +589,7 @@ export default function ApplyDoctorPage() {
                 </div>
 
                 {/* Address */}
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Chamber / Practice Address
                   </label>
@@ -472,7 +626,7 @@ export default function ApplyDoctorPage() {
               </div>
             </div>
 
-            {/* 3. Supporting Documents (Resume Required) */}
+            {/* 3. Supporting Documents */}
             <div className="space-y-4">
               <h3 className="text-lg font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-emerald-600" />
@@ -485,7 +639,6 @@ export default function ApplyDoctorPage() {
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Resume / Curriculum Vitae (CV) *
                   </label>
-
                   <input
                     ref={resumeInputRef}
                     type="file"
@@ -528,9 +681,7 @@ export default function ApplyDoctorPage() {
                         type="button"
                         onClick={() => {
                           setResumeFile(null);
-                          if (resumeInputRef.current) {
-                            resumeInputRef.current.value = "";
-                          }
+                          if (resumeInputRef.current) resumeInputRef.current.value = "";
                         }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                         title="Remove Resume"
@@ -546,7 +697,6 @@ export default function ApplyDoctorPage() {
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                     Additional Certificates (Optional)
                   </label>
-
                   <input
                     ref={additionalInputRef}
                     type="file"
@@ -631,10 +781,7 @@ export default function ApplyDoctorPage() {
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
                 We sent a 6-digit verification code (OTP) to <br />
-                <span className="font-bold text-slate-800">
-                  {formData.email}
-                </span>
-                .
+                <span className="font-bold text-slate-800">{formData.email}</span>.
               </p>
             </div>
 

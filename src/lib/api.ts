@@ -34,7 +34,8 @@ export async function apiRequest<T>(
     headers,
   });
 
-  const data = await res.json();
+  const responseText = await res.text();
+  const data = responseText ? JSON.parse(responseText) : null;
 
   if (!res.ok) {
     throw new Error(data?.message || "Something went wrong");

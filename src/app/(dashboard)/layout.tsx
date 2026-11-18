@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   Building2,
@@ -16,12 +16,23 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import Logo from "@/components/shared/logo/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth, type IAuthUser } from "@/context/AuthContext";
 
-const adminNavigation = [
+type DashboardRole = IAuthUser["role"];
+
+type NavigationItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+const adminNavigation: NavigationItem[] = [
   { href: "/admin", label: "Overview & Analytics", icon: LayoutDashboard },
   { href: "/admin/departments", label: "Departments", icon: Building2 },
   {
@@ -33,45 +44,61 @@ const adminNavigation = [
   { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/appointments", label: "Appointments", icon: CalendarCheck2 },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/me", label: "My Profile", icon: User },
 ];
 
-const doctorNavigation = [
+const doctorNavigation: NavigationItem[] = [
   { href: "/doctor", label: "Overview & Analytics", icon: LayoutDashboard },
-  { href: "/doctor/schedules", label: "My Schedules", icon: CalendarClock },
-  { href: "/doctor/appointments", label: "Appointments", icon: CalendarCheck2 },
-  { href: "/me", label: "My Profile", icon: User },
 ];
 
-const patientNavigation = [
+const patientNavigation: NavigationItem[] = [
   { href: "/patient", label: "Overview", icon: LayoutDashboard },
   { href: "/patient/appointments", label: "Appointments", icon: CalendarCheck2 },
-  { href: "/me", label: "Profile", icon: User },
 ];
+
+const profileNavigation: NavigationItem = {
+  href: "/me",
+  label: "My Profile",
+  icon: User,
+};
+
+const getNavigationForRole = (role: DashboardRole | undefined) => {
+  if (role === "ADMIN" || role === "SUPER_ADMIN") return adminNavigation;
+  if (role === "DOCTOR") return doctorNavigation;
+  return patientNavigation;
+};
+
+const getDashboardTitle = (role: DashboardRole | undefined) => {
+  if (role === "ADMIN" || role === "SUPER_ADMIN") return "Admin Control Panel";
+  if (role === "DOCTOR") return "Doctor Workspace";
+  return "Patient Portal";
+};
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isAdmin = pathname.startsWith("/admin");
-  const isDoctor = pathname.startsWith("/doctor");
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, router, user]);
 
-  const navigation = isAdmin
-    ? adminNavigation
-    : isDoctor
-      ? doctorNavigation
-      : patientNavigation;
-
-  const dashboardTitle = isAdmin
-    ? "Admin Control Panel"
-    : isDoctor
-      ? "Doctor Workspace"
-      : "Patient Portal";
+  const navigation = [...getNavigationForRole(user?.role), profileNavigation];
+  const dashboardTitle = getDashboardTitle(user?.role);
+  const avatarUrl =
+    user?.profilePhoto ||
+    user?.patient?.profilePhoto ||
+    user?.doctor?.profilePhoto ||
+    "";
 
   const checkIsActive = (href: string) =>
     href === "/admin" || href === "/doctor" || href === "/patient"
       ? pathname === href
       : pathname.startsWith(href);
+
+  if (loading || !user) return null;
 
   return (
     <div className="flex min-h-screen bg-slate-50/70">
@@ -106,6 +133,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-slate-200 p-4">
+          <Link
+            href="/me"
+            className="mb-3 flex items-center gap-3 rounded-xl border border-slate-200 p-3 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
+          >
+            <Avatar className="h-9 w-9 border border-slate-200">
+              <AvatarImage src={avatarUrl} alt={user.name} />
+              <AvatarFallback className="bg-emerald-100 text-xs font-bold text-emerald-700">
+                {user.name.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+              <p className="truncate text-xs text-slate-500">{user.email}</p>
+            </div>
+          </Link>
           <Button
             asChild
             variant="ghost"
@@ -202,6 +244,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             >
               {dashboardTitle}
             </Badge>
+            <Link
+              href="/me"
+              aria-label="Open my profile"
+              className="rounded-full ring-offset-2 transition-shadow hover:ring-2 hover:ring-emerald-300"
+            >
+              <Avatar className="h-9 w-9 border border-slate-200">
+                <AvatarImage src={avatarUrl} alt={user.name} />
+                <AvatarFallback className="bg-emerald-100 text-xs font-bold text-emerald-700">
+                  {user.name.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
           </div>
         </header>
 

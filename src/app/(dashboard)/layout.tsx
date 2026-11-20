@@ -44,6 +44,7 @@ const adminNavigation: NavigationItem[] = [
   { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/appointments", label: "Appointments", icon: CalendarCheck2 },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
+  { href: "/admin/newsletter", label: "Newsletter", icon: UserCheck },
 ];
 
 const doctorNavigation: NavigationItem[] = [

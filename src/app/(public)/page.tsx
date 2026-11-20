@@ -28,10 +28,10 @@ function page() {
   <Achievements />
   <Rivew/>
   <Partners />
-  <Blog />
+  <Blog /> 
   <Help />
   <Subscription />
-
+{/* Blog Done */}
 
  </div>   
     

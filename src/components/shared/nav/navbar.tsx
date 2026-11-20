@@ -145,6 +145,7 @@ const avatarUrl =
                 >
                   {[
                     { href: "/services", label: "Services" },
+                    { href: "/blogs", label: "Health Journal" },
                     { href: "/about-us", label: "About Us" },
                     { href: "/contact-us", label: "Contact Us" },
                     { href: "/help", label: "Help & Support" },
@@ -293,6 +294,7 @@ const avatarUrl =
             { href: "/available-today", label: "Available Today" },
             { href: "/departments", label: "Departments" },
             { href: "/doctors", label: "Doctors" },
+            { href: "/blogs", label: "Health Journal" },
             { href: "/services", label: "Services" },
             { href: "/about-us", label: "About Us" },
             { href: "/contact-us", label: "Contact Us" },

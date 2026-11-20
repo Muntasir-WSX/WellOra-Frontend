@@ -1,6 +1,5 @@
 import About from '@/components/home/about';
 import Achievements from '@/components/home/achievments';
-import Achievments from '@/components/home/achievments';
 import Appointment from '@/components/home/appointment';
 import Banner from '@/components/home/banner';
 import Blog from '@/components/home/blog';
@@ -12,7 +11,6 @@ import Rivew from '@/components/home/rivew';
 import Services from '@/components/home/services';
 import Subscription from '@/components/home/subscription';
 import WhyChooseUs from '@/components/home/whychooseus';
-import Whychooseus from '@/components/home/whychooseus';
 import React from 'react'
 
 function page() {

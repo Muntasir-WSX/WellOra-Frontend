@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   Menu,
   X,
+  Users,
+  MailCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,20 +35,25 @@ type NavigationItem = {
 };
 
 const adminNavigation: NavigationItem[] = [
+  // 1. High Priority / Real-time Monitoring & Approvals
   { href: "/admin", label: "Overview & Analytics", icon: LayoutDashboard },
-  { href: "/admin/departments", label: "Departments", icon: Building2 },
   {
     href: "/admin/doctor-applications",
     label: "Doctor Applications",
     icon: UserCheck,
   },
-  { href: "/admin/schedeules", label: "Schedules", icon: CalendarClock },
-  { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/appointments", label: "Appointments", icon: CalendarCheck2 },
+  { href: "/admin/schedeules", label: "Schedules", icon: CalendarClock },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/admin/newsletter", label: "Newsletter", icon: UserCheck },
-];
 
+  // 2. Core Platform Management
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/departments", label: "Departments", icon: Building2 },
+
+  // 3. Content & Engagement
+  { href: "/admin/blog", label: "Blog", icon: FileText },
+  { href: "/admin/newsletter", label: "Newsletter", icon: MailCheck },
+];
 const doctorNavigation: NavigationItem[] = [
   { href: "/doctor", label: "Overview & Analytics", icon: LayoutDashboard },
 ];

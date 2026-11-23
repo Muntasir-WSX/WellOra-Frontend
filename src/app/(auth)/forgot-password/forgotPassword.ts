@@ -11,15 +11,21 @@ export interface IResetPasswordPayload {
 }
 
 export const forgotPasswordApi = async (payload: IForgotPasswordPayload) => {
-  return apiRequest("/auth/forgot-password", {
+  return apiRequest<{ success: boolean; message?: string }>(
+    "/auth/forgot-password",
+    {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+    },
+  );
 };
 
 export const resetPasswordApi = async (payload: IResetPasswordPayload) => {
-  return apiRequest("/auth/reset-password", {
+  return apiRequest<{ success: boolean; message?: string }>(
+    "/auth/reset-password",
+    {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+    },
+  );
 };

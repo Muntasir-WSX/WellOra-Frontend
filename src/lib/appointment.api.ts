@@ -199,3 +199,17 @@ export const updateAppointmentStatusApi = async (
     body: JSON.stringify({ status }),
   });
 };
+
+export const bookAppointmentApi = async (payload: {
+  scheduleId: string;
+  type: "ONLINE" | "IN_PERSON";
+}) => {
+  return apiRequest<{
+    success?: boolean;
+    message?: string;
+    data?: { paymentUrl?: string };
+  }>("/appointment/book-appointment", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+};

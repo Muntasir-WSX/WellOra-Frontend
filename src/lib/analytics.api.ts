@@ -26,10 +26,16 @@ export interface IDoctorAnalytics {
 }
 
 export const getAdminAnalyticsApi = async (): Promise<IAdminAnalytics> => {
-  const res = await apiRequest("/analytics/admin-analytics", {
+  const res = await apiRequest<{ success?: boolean; data: IAdminAnalytics }>(
+    "/analytics/admin-analytics",
+    {
     method: "GET",
-  });
-  return res?.data;
+    },
+  );
+  if (!res?.data) {
+    throw new Error("Failed to load admin analytics");
+  }
+  return res.data;
 };
 
 export const getDoctorAnalyticsApi = async (): Promise<IDoctorAnalytics> => {

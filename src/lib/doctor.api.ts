@@ -47,6 +47,45 @@ export interface IDoctorApplication {
   };
 }
 
+export interface ITodaysScheduleSlot {
+  id: string;
+  startDateTime: string;
+  endDateTime: string;
+  availableSlots: number;
+  totalSlots: number;
+}
+
+export interface IAvailableTodayDoctor {
+  id: string;
+  name: string;
+  profilePhoto?: string | null;
+  specialization: string;
+  licenseNumber: string;
+  qualifications: string;
+  experienceYears: number;
+  bio?: string | null;
+  consultationFee?: number | string | null;
+  createdAt: string;
+  department?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  schedules: ITodaysScheduleSlot[];
+}
+
+export interface IAvailableTodayQueryParams {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  departmentId?: string;
+  specialization?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+
+
 export interface IDoctorDetails extends IDoctorApplication {
   doctorSchedules?: IDoctorScheduleSlot[];
 }
@@ -222,3 +261,37 @@ export const bookAppointmentApi = async (payload: {
     body: JSON.stringify(payload),
   });
 };
+
+export const getAvailableDoctorsTodayApi = async (
+  params: IAvailableTodayQueryParams = {},
+) => {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+  if (params.searchTerm) searchParams.set("searchTerm", params.searchTerm);
+  if (params.departmentId) {
+    searchParams.set("departmentId", params.departmentId);
+  }
+  if (params.specialization) {
+    searchParams.set("specialization", params.specialization);
+  }
+  if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+  if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
+
+  const queryStr = searchParams.toString();
+  const res = await apiRequest<{
+    data?: IAvailableTodayDoctor[];
+    meta?: { page: number; limit: number; total: number; totalPages: number };
+  }>(`/doctor/public/available-today${queryStr ? `?${queryStr}` : ""}`, {
+    method: "GET",
+    skipAuth: true,
+  });
+
+  return {
+    doctors: (Array.isArray(res?.data)
+      ? res.data
+      : []) as IAvailableTodayDoctor[],
+    meta: res?.meta || { page: 1, limit: 9, total: 0, totalPages: 1 },
+  };
+};
+

@@ -18,9 +18,12 @@ export interface IDepartmentPayload {
 }
 
 export const getDepartmentsApi = async (): Promise<IDepartment[]> => {
-  const res = await apiRequest("/department", {
+  const res = await apiRequest<{ success?: boolean; data?: IDepartment[] }>(
+    "/department",
+    {
     method: "GET",
-  });
+    },
+  );
   return Array.isArray(res?.data) ? res.data : [];
 };
 

@@ -26,6 +26,13 @@ export interface IVerifyDoctorEmailPayload {
   otp: string;
 }
 
+interface DoctorApplicationResponse {
+  success?: boolean;
+  statusCode?: number;
+  message?: string;
+  data?: unknown;
+}
+
 // Fetch all departments for dropdown
 export const getDepartmentsApi = async (): Promise<{
   success: boolean;
@@ -44,7 +51,7 @@ export const applyDoctorApi = async (
     resume?: File | null;
     additionalFiles?: File[];
   },
-) => {
+): Promise<DoctorApplicationResponse> => {
   if (!files?.resume) {
     throw new Error("Resume file is required");
   }
@@ -88,7 +95,7 @@ export const applyDoctorApi = async (
     });
   }
 
-  return apiRequest("/doctor/apply-as-doctor", {
+  return apiRequest<DoctorApplicationResponse>("/doctor/apply-as-doctor", {
     method: "POST",
     body: formData,
   });
@@ -98,7 +105,7 @@ export const applyDoctorApi = async (
 export const verifyDoctorEmailApi = async (
   payload: IVerifyDoctorEmailPayload,
 ) => {
-  return apiRequest("/doctor/apply-as-doctor/verify-email", {
+  return apiRequest<DoctorApplicationResponse>("/doctor/apply-as-doctor/verify-email", {
     method: "POST",
     body: JSON.stringify(payload),
   });

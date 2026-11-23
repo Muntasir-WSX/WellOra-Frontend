@@ -44,18 +44,40 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 export default function DoctorDetailsPage() {
-  const params = useParams<{ doctorId: string }>();
+  const params = useParams<{ id?: string; doctorId?: string }>();
   const router = useRouter();
-  const doctorId = params?.doctorId?.trim();
+  const doctorId = (params?.id || params?.doctorId)?.trim();
 
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [doctor, setDoctor] = useState<IDoctorDetails | null>(null);
   const [schedules, setSchedules] = useState<IDoctorScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [booking, setBooking] = useState(false);
 
+  // Private Route Auth Guard
+  useEffect(() => {
+    const hasAuth =
+      typeof window !== "undefined" &&
+      Boolean(
+        localStorage.getItem("accessToken") ||
+          localStorage.getItem("token") ||
+          document.cookie.includes("accessToken="),
+      );
+
+    if (!hasAuth) {
+      toast.info("Please login to view specialist details and book an appointment.");
+      router.replace(
+        doctorId ? `/login?redirect=/patient/doctors/${doctorId}` : "/login",
+      );
+      return;
+    }
+
+    setIsAuthorized(true);
+  }, [doctorId, router]);
+
   const fetchDoctorData = useCallback(async () => {
-    if (!doctorId) return;
+    if (!doctorId || !isAuthorized) return;
     setLoading(true);
     try {
       const doctorRes = await getSingleDoctorApi(doctorId);
@@ -79,7 +101,7 @@ export default function DoctorDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }, [doctorId]);
+  }, [doctorId, isAuthorized]);
 
   useEffect(() => {
     fetchDoctorData();
@@ -112,18 +134,22 @@ export default function DoctorDetailsPage() {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Could not book appointment. Please make sure you are logged in as a patient.",
+          : "Could not book appointment. Please try again.",
       );
     } finally {
       setBooking(false);
     }
   };
 
-  if (loading) {
+  if (!isAuthorized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center gap-2 pt-20 text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-        <span>Loading specialist profile...</span>
+        <span>
+          {!isAuthorized
+            ? "Checking authentication..."
+            : "Loading specialist profile..."}
+        </span>
       </div>
     );
   }
@@ -152,7 +178,6 @@ export default function DoctorDetailsPage() {
   return (
     <div className="min-h-screen bg-slate-50/60 pb-20 pt-24 dark:bg-background">
       <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
-        {/* Back Link */}
         <div>
           <Button variant="ghost" size="sm" asChild className="gap-1.5 pl-0">
             <Link href="/doctors">
@@ -162,16 +187,14 @@ export default function DoctorDetailsPage() {
           </Button>
         </div>
 
-        {/* Main 2-Column Layout */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* LEFT COLUMN: Doctor Profile, Qualifications & Bio */}
+          {/* LEFT COLUMN: Doctor Profile */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="space-y-6 lg:col-span-7"
           >
-            {/* Header Profile Card */}
             <Card className="overflow-hidden rounded-3xl border-slate-200/80 shadow-md">
               <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 p-6 text-white sm:p-8">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -251,7 +274,6 @@ export default function DoctorDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* About & Clinical Details Card */}
             <Card className="rounded-3xl border-slate-200/80 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">About Specialist</CardTitle>
@@ -302,7 +324,7 @@ export default function DoctorDetailsPage() {
             </Card>
           </motion.div>
 
-          {/* RIGHT COLUMN: Slot Selection & Appointment Booking Card */}
+          {/* RIGHT COLUMN: Slot Selection & Appointment Booking */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 
 import {
-  getAllDoctorsAdminApi,
+  getPublicDoctorsApi,
   type IDoctorApplication,
 } from "@/lib/doctor.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,10 +43,9 @@ export default function OurDoctors() {
   useEffect(() => {
     let active = true;
 
-    getAllDoctorsAdminApi({
+    getPublicDoctorsApi({
       page: 1,
       limit: 12,
-      verificationStatus: "APPROVED",
     })
       .then((res) => {
         if (active) setDoctors(res.doctors);
@@ -281,14 +280,14 @@ export default function OurDoctors() {
                         size="sm"
                         className="flex-1 rounded-xl"
                       >
-                        <Link href={`/doctors/${doctor.id}`}>Profile</Link>
+                        <Link href={`/patient/doctors/${doctor.id}`}>Profile</Link>
                       </Button>
                       <Button
                         asChild
                         size="sm"
                         className="flex-1 gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
                       >
-                        <Link href={`/doctors/${doctor.id}`}>
+                        <Link href={`/patient/doctors/${doctor.id}`}>
                           <CalendarCheck className="h-4 w-4" />
                           Book Slot
                         </Link>

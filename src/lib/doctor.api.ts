@@ -77,16 +77,69 @@ export const getAllDoctorsAdminApi = async (params: IDoctorQueryParams = {}) => 
   const res = await apiRequest<{
     data?: IDoctorApplication[];
     meta?: { page: number; limit: number; total: number; totalPages: number };
-  }>(
-    `/doctor/all-doctors${queryStr ? `?${queryStr}` : ""}`,
-    {
-      method: "GET",
-    },
-  );
+  }>(`/doctor/all-doctors${queryStr ? `?${queryStr}` : ""}`, {
+    method: "GET",
+  });
 
   return {
     doctors: (Array.isArray(res?.data) ? res.data : []) as IDoctorApplication[],
     meta: res?.meta || { page: 1, limit: 10, total: 0, totalPages: 1 },
+  };
+};
+
+export const getPublicDoctorsApi = async (params: IDoctorQueryParams = {}) => {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+  if (params.searchTerm?.trim()) {
+    searchParams.set("searchTerm", params.searchTerm.trim());
+  }
+  if (params.departmentId) {
+    searchParams.set("departmentId", params.departmentId);
+  }
+
+  const queryStr = searchParams.toString();
+  const publicEndpoints = [
+    `/doctor/public/all-doctors${queryStr ? `?${queryStr}` : ""}`,
+    `/doctor${queryStr ? `?${queryStr}` : ""}`,
+    `/doctor/public${queryStr ? `?${queryStr}` : ""}`,
+    `/doctor/approved${queryStr ? `?${queryStr}` : ""}`,
+  ];
+
+  for (const endpoint of publicEndpoints) {
+    try {
+      const res = await apiRequest<{
+        data?: IDoctorApplication[];
+        meta?: { page: number; limit: number; total: number; totalPages: number };
+      }>(endpoint, {
+        method: "GET",
+        skipAuth: true,
+      });
+
+      if (Array.isArray(res?.data)) {
+        const approvedDoctors = res.data.filter(
+          (doc) =>
+            !doc.verificationStatus || doc.verificationStatus === "APPROVED",
+        );
+
+        return {
+          doctors: approvedDoctors,
+          meta: res?.meta || {
+            page: params.page || 1,
+            limit: params.limit || 9,
+            total: approvedDoctors.length,
+            totalPages: 1,
+          },
+        };
+      }
+    } catch {
+      // Try the next candidate endpoint.
+    }
+  }
+
+  return {
+    doctors: [] as IDoctorApplication[],
+    meta: { page: 1, limit: params.limit || 9, total: 0, totalPages: 1 },
   };
 };
 
@@ -119,10 +172,10 @@ export const getSingleDoctorApi = async (
       if (doctor?.id) return doctor;
     }
   } catch {
-    // Try the doctor list when the dedicated route is unavailable.
+    // Fallback to public doctor list
   }
 
-  const fallback = await getAllDoctorsAdminApi({ limit: 100 });
+  const fallback = await getPublicDoctorsApi({ limit: 100 });
   const found = fallback.doctors.find((doc) => doc.id === doctorId);
   if (!found) {
     throw new Error("Doctor profile not found");
@@ -142,7 +195,6 @@ export const getDoctorSchedulesApi = async (
     );
     if (Array.isArray(res?.data)) return res.data;
   } catch {
-    // Try the alternate schedule route.
     const altRes = await apiRequest<{ data?: IDoctorScheduleSlot[] }>(
       `/schedule?doctorId=${encodeURIComponent(doctorId)}`,
       {

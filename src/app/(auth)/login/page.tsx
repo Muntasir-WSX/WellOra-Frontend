@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { loginUserApi } from "@/app/(auth)/login/login";
@@ -9,6 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,11 @@ export default function LoginPage() {
           localStorage.setItem("accessToken", res.data.accessToken);
         }
         await refreshUser();
-        router.push("/");
+        router.push(
+          redirectTo?.startsWith("/") && !redirectTo.startsWith("//")
+            ? redirectTo
+            : "/",
+        );
         router.refresh();
       }
     } catch (error: unknown) {

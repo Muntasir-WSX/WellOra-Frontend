@@ -8,16 +8,24 @@ const BASE_URL = normalizedUrl.endsWith("/api/v1")
   ? normalizedUrl
   : `${normalizedUrl}/api/v1`;
 
+export interface ApiRequestOptions extends RequestInit {
+  skipAuth?: boolean;
+}
+
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: ApiRequestOptions = {},
 ): Promise<T> {
-  const isFormData = options.body instanceof FormData;
+  const { skipAuth = false, headers: customHeaders, ...fetchOptions } = options;
+  const isFormData = fetchOptions.body instanceof FormData;
+
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    !skipAuth && typeof window !== "undefined"
+      ? localStorage.getItem("accessToken") || localStorage.getItem("token")
+      : null;
 
   const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string>),
+    ...(customHeaders as Record<string, string>),
   };
 
   if (!isFormData && !headers["Content-Type"]) {
@@ -29,8 +37,8 @@ export async function apiRequest<T>(
   }
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    credentials: "include",
+    ...fetchOptions,
+    credentials: skipAuth ? "omit" : "include",
     headers,
   });
 
@@ -38,6 +46,12 @@ export async function apiRequest<T>(
   const data = responseText ? JSON.parse(responseText) : null;
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
+      document.cookie =
+        "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
     throw new Error(data?.message || "Something went wrong");
   }
 

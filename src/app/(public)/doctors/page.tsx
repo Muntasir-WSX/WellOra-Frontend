@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 
 import {
-  getAllDoctorsAdminApi,
+  getPublicDoctorsApi,
   type IDoctorApplication,
 } from "@/lib/doctor.api";
 import { getDepartmentsApi, type IDepartment } from "@/lib/department.api";
@@ -125,14 +125,13 @@ function OurDoctorsContent() {
     };
   }, []);
 
-  // Fetch approved / available doctors (filtered by departmentId if selected)
+  // Fetch approved doctors publicly (works without login)
   const fetchDoctors = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getAllDoctorsAdminApi({
+      const res = await getPublicDoctorsApi({
         page,
         limit: 9,
-        verificationStatus: "APPROVED",
         departmentId: selectedDepartmentId || undefined,
         searchTerm: debouncedSearch || undefined,
       });
@@ -159,6 +158,25 @@ function OurDoctorsContent() {
     } else {
       router.push("/doctors", { scroll: false });
     }
+  };
+
+  // Redirect to login if user is not authenticated when clicking Details or Book Slot
+  const handleDoctorAction = (doctorId: string) => {
+    const isAuthenticated =
+      typeof window !== "undefined" &&
+      Boolean(
+        localStorage.getItem("accessToken") ||
+          localStorage.getItem("token") ||
+          document.cookie.includes("accessToken="),
+      );
+
+    if (!isAuthenticated) {
+      toast.info("Please login first to view doctor details and book a slot.");
+      router.push(`/login?redirect=/patient/doctors/${doctorId}`);
+      return;
+    }
+
+    router.push(`/patient/doctors/${doctorId}`);
   };
 
   const activeDepartment = departments.find(
@@ -461,22 +479,22 @@ function OurDoctorsContent() {
 
                   <CardFooter className="flex items-center gap-2.5 border-t pt-4">
                     <Button
-                      asChild
+                      type="button"
                       variant="outline"
                       size="sm"
+                      onClick={() => handleDoctorAction(doctor.id)}
                       className="flex-1 rounded-xl"
                     >
-                      <Link href={`/doctors/${doctor.id}`}>Details</Link>
+                      Details
                     </Button>
                     <Button
-                      asChild
+                      type="button"
                       size="sm"
+                      onClick={() => handleDoctorAction(doctor.id)}
                       className="flex-1 gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
                     >
-                      <Link href={`/doctors/${doctor.id}`}>
-                        <CalendarCheck className="h-4 w-4" />
-                        Book Slot
-                      </Link>
+                      <CalendarCheck className="h-4 w-4" />
+                      Book Slot
                     </Button>
                   </CardFooter>
                 </Card>

@@ -280,14 +280,14 @@ export default function OurDoctors() {
                         size="sm"
                         className="flex-1 rounded-xl"
                       >
-                        <Link href={`/patient/doctors/${doctor.id}`}>Profile</Link>
+                        <Link href={`/doctors/${doctor.id}`}>Profile</Link>
                       </Button>
                       <Button
                         asChild
                         size="sm"
                         className="flex-1 gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
                       >
-                        <Link href={`/patient/doctors/${doctor.id}`}>
+                        <Link href="/available-today">
                           <CalendarCheck className="h-4 w-4" />
                           Book Slot
                         </Link>

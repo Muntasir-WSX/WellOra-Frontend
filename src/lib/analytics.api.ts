@@ -25,6 +25,15 @@ export interface IDoctorAnalytics {
   totalDoctorRefunded: number;
 }
 
+export interface IPatientAnalytics {
+  totalAppointments: number;
+  upcomingAppointments: number;
+  completedAppointments: number;
+  cancelledAppointments: number;
+  totalAmountSpent: number;
+  totalRefunded: number;
+}
+
 export const getAdminAnalyticsApi = async (): Promise<IAdminAnalytics> => {
   const res = await apiRequest<{ success?: boolean; data: IAdminAnalytics }>(
     "/analytics/admin-analytics",
@@ -49,6 +58,22 @@ export const getDoctorAnalyticsApi = async (): Promise<IDoctorAnalytics> => {
 
   if (!res?.data) {
     throw new Error(res?.message || "Failed to load doctor analytics");
+  }
+
+  return res.data;
+};
+
+export const getPatientAnalyticsApi = async (): Promise<IPatientAnalytics> => {
+  const res = await apiRequest<{
+    success?: boolean;
+    message?: string;
+    data: IPatientAnalytics;
+  }>("/analytics/patient-analytics", {
+    method: "GET",
+  });
+
+  if (!res?.data) {
+    throw new Error(res?.message || "Failed to load patient analytics");
   }
 
   return res.data;

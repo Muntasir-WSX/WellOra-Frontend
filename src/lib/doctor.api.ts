@@ -246,22 +246,6 @@ export const getDoctorSchedulesApi = async (
   return [];
 };
 
-export const bookAppointmentApi = async (payload: {
-  doctorId: string;
-  scheduleId: string;
-}) => {
-  return apiRequest<{
-    data?: {
-      paymentUrl?: string;
-      GatewayPageURL?: string;
-    };
-    paymentUrl?: string;
-  }>("/appointment", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-};
-
 export const getAvailableDoctorsTodayApi = async (
   params: IAvailableTodayQueryParams = {},
 ) => {
@@ -285,6 +269,7 @@ export const getAvailableDoctorsTodayApi = async (
   }>(`/doctor/public/available-today${queryStr ? `?${queryStr}` : ""}`, {
     method: "GET",
     skipAuth: true,
+    cache: "no-store",
   });
 
   return {

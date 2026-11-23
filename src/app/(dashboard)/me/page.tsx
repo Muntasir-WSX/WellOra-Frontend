@@ -481,7 +481,7 @@ export default function ProfilePage() {
                         <Input
                           id="consultationFee"
                           type="number"
-                          min={0}
+                          min={1}
                           value={formData.consultationFee}
                           onChange={(e) =>
                             setFormData({

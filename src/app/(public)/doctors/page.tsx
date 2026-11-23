@@ -160,23 +160,13 @@ function OurDoctorsContent() {
     }
   };
 
-  // Redirect to login if user is not authenticated when clicking Details or Book Slot
-  const handleDoctorAction = (doctorId: string) => {
-    const isAuthenticated =
-      typeof window !== "undefined" &&
-      Boolean(
-        localStorage.getItem("accessToken") ||
-          localStorage.getItem("token") ||
-          document.cookie.includes("accessToken="),
-      );
-
-    if (!isAuthenticated) {
-      toast.info("Please login first to view doctor details and book a slot.");
-      router.push(`/login?redirect=/patient/doctors/${doctorId}`);
+  const handleDoctorAction = (doctorId: string, isBookAction = false) => {
+    if (isBookAction) {
+      router.push("/available-today");
       return;
     }
 
-    router.push(`/patient/doctors/${doctorId}`);
+    router.push(`/doctors/${doctorId}`);
   };
 
   const activeDepartment = departments.find(
@@ -482,7 +472,7 @@ function OurDoctorsContent() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDoctorAction(doctor.id)}
+                      onClick={() => handleDoctorAction(doctor.id, false)}
                       className="flex-1 rounded-xl"
                     >
                       Details
@@ -490,7 +480,7 @@ function OurDoctorsContent() {
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => handleDoctorAction(doctor.id)}
+                      onClick={() => handleDoctorAction(doctor.id, true)}
                       className="flex-1 gap-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
                     >
                       <CalendarCheck className="h-4 w-4" />

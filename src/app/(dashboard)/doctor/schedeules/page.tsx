@@ -137,6 +137,12 @@ export default function DoctorSchedulesPage() {
     }
 
     const mins = differenceInMinutes(end, start);
+    if (start.getTime() <= Date.now()) {
+      return {
+        valid: false,
+        message: "Schedule start time must be in the future",
+      };
+    }
     if (mins <= 0) {
       return {
         valid: false,
@@ -162,9 +168,8 @@ export default function DoctorSchedulesPage() {
 
   const openCreateModal = () => {
     setEditingSchedule(null);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setDateValue(format(tomorrow, "yyyy-MM-dd"));
+    const today = new Date();
+    setDateValue(format(today, "yyyy-MM-dd"));
     setStartTimeValue("10:00");
     setEndTimeValue("14:00");
     setMeetingLinkValue("");
@@ -231,7 +236,7 @@ export default function DoctorSchedulesPage() {
     try {
       await publishScheduleApi(scheduleId);
       toast.success("Schedule published! Patients can now book slots.");
-      fetchSchedules();
+      await fetchSchedules();
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "Failed to publish schedule",

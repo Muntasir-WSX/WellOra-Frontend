@@ -24,12 +24,12 @@ import {
 import { toast } from "sonner";
 
 import {
-  bookAppointmentApi,
   getDoctorSchedulesApi,
   getSingleDoctorApi,
   type IDoctorDetails,
   type IDoctorScheduleSlot,
 } from "@/lib/doctor.api";
+import { bookAppointmentApi } from "@/lib/appointment.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -116,12 +116,12 @@ export default function DoctorDetailsPage() {
     setBooking(true);
     try {
       const res = await bookAppointmentApi({
-        doctorId: doctor.id,
         scheduleId: selectedSlotId,
+        type: "ONLINE",
       });
 
       const paymentUrl =
-        res?.data?.paymentUrl || res?.data?.GatewayPageURL || res?.paymentUrl;
+        res?.data?.paymentUrl;
 
       toast.success("Appointment slot reserved! Redirecting...");
 

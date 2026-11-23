@@ -59,12 +59,14 @@ const doctorNavigation: NavigationItem[] = [
   { href: "/doctor/schedeules", label: "Schedules", icon: CalendarClock },
   { href: "/doctor/appointments", label: "Appointments", icon: CalendarCheck2 },
   { href: "/doctor/payments", label: "Payments", icon: CreditCard },
-  
+
 ];
 
 const patientNavigation: NavigationItem[] = [
   { href: "/patient", label: "Overview", icon: LayoutDashboard },
   { href: "/patient/appointments", label: "Appointments", icon: CalendarCheck2 },
+  { href: "/patient/doctors", label: "Booked Doctors", icon: UserCheck },
+  { href: "/patient/payments", label: "Payments", icon: CreditCard },
 ];
 
 const profileNavigation: NavigationItem = {

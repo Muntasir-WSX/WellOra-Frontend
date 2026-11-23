@@ -27,6 +27,7 @@ import {
   IDoctorApplication,
   DoctorVerificationStatus,
 } from "@/lib/doctor.api";
+import { ApiRequestError } from "@/lib/api";
 
 import {
   Card,
@@ -157,12 +158,20 @@ export default function AdminDoctorApplicationsPage() {
       );
       setSelectedDoctor(null);
       await fetchDoctors();
-    } catch (err: any) {
-      setModalError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to update application status."
-      );
+    } catch (err: unknown) {
+      if (err instanceof ApiRequestError && err.status === 409) {
+        setSuccessMsg(
+          `This application has already been processed. The list is being refreshed.`,
+        );
+        setSelectedDoctor(null);
+        await fetchDoctors();
+      } else {
+        setModalError(
+          err instanceof Error
+            ? err.message
+            : "Failed to update application status.",
+        );
+      }
     } finally {
       setActionLoading(false);
     }

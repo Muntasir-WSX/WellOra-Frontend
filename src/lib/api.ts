@@ -12,6 +12,17 @@ export interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly data: unknown,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   options: ApiRequestOptions = {},
@@ -52,7 +63,11 @@ export async function apiRequest<T>(
       document.cookie =
         "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
-    throw new Error(data?.message || "Something went wrong");
+    throw new ApiRequestError(
+      data?.message || "Something went wrong",
+      res.status,
+      data,
+    );
   }
 
   return data;

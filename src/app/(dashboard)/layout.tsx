@@ -56,6 +56,10 @@ const adminNavigation: NavigationItem[] = [
 ];
 const doctorNavigation: NavigationItem[] = [
   { href: "/doctor", label: "Overview & Analytics", icon: LayoutDashboard },
+  { href: "/doctor/schedeules", label: "Schedules", icon: CalendarClock },
+  { href: "/doctor/appointments", label: "Appointments", icon: CalendarCheck2 },
+  { href: "/doctor/payments", label: "Payments", icon: CreditCard },
+  
 ];
 
 const patientNavigation: NavigationItem[] = [

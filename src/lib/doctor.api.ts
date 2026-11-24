@@ -1,4 +1,5 @@
 import { apiRequest } from "@/lib/api";
+import type { IDoctorSchedule } from "@/lib/schedule.api";
 
 export type DoctorVerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -224,26 +225,15 @@ export const getSingleDoctorApi = async (
 
 export const getDoctorSchedulesApi = async (
   doctorId: string,
-): Promise<IDoctorScheduleSlot[]> => {
-  try {
-    const res = await apiRequest<{ data?: IDoctorScheduleSlot[] }>(
-      `/doctor-schedule?doctorId=${encodeURIComponent(doctorId)}`,
-      {
-        method: "GET",
-      },
-    );
-    if (Array.isArray(res?.data)) return res.data;
-  } catch {
-    const altRes = await apiRequest<{ data?: IDoctorScheduleSlot[] }>(
-      `/schedule?doctorId=${encodeURIComponent(doctorId)}`,
-      {
-        method: "GET",
-      },
-    ).catch(() => null);
-    if (Array.isArray(altRes?.data)) return altRes.data;
-  }
-
-  return [];
+): Promise<IDoctorSchedule[]> => {
+  const res = await apiRequest<{ data?: IDoctorSchedule[] }>(
+    `/schedule/todays-schedule?doctorId=${encodeURIComponent(doctorId)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+  );
+  return Array.isArray(res?.data) ? res.data : [];
 };
 
 export const getAvailableDoctorsTodayApi = async (

@@ -27,8 +27,8 @@ import {
   getDoctorSchedulesApi,
   getSingleDoctorApi,
   type IDoctorDetails,
-  type IDoctorScheduleSlot,
 } from "@/lib/doctor.api";
+import type { IDoctorSchedule } from "@/lib/schedule.api";
 import { bookAppointmentApi } from "@/lib/appointment.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ export default function DoctorDetailsPage() {
 
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [doctor, setDoctor] = useState<IDoctorDetails | null>(null);
-  const [schedules, setSchedules] = useState<IDoctorScheduleSlot[]>([]);
+  const [schedules, setSchedules] = useState<IDoctorSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [booking, setBooking] = useState(false);
@@ -82,16 +82,7 @@ export default function DoctorDetailsPage() {
     try {
       const doctorRes = await getSingleDoctorApi(doctorId);
       setDoctor(doctorRes);
-
-      if (
-        Array.isArray(doctorRes?.doctorSchedules) &&
-        doctorRes.doctorSchedules.length > 0
-      ) {
-        setSchedules(doctorRes.doctorSchedules);
-      } else {
-        const slotList = await getDoctorSchedulesApi(doctorId).catch(() => []);
-        setSchedules(slotList);
-      }
+      setSchedules(await getDoctorSchedulesApi(doctorId));
     } catch (error: unknown) {
       toast.error(
         error instanceof Error
@@ -173,7 +164,13 @@ export default function DoctorDetailsPage() {
     );
   }
 
-  const availableSlots = schedules.filter((slot) => !slot.isBooked);
+  const availableSchedules = schedules.filter(
+    (schedule) => schedule.status === "PUBLISHED" && schedule.availableSlots > 0,
+  );
+  const openSlotCount = availableSchedules.reduce(
+    (total, schedule) => total + schedule.availableSlots,
+    0,
+  );
 
   return (
     <div className="min-h-screen bg-slate-50/60 pb-20 pt-24 dark:bg-background">
@@ -341,7 +338,7 @@ export default function DoctorDetailsPage() {
                     20-Min Dedicated Slot
                   </Badge>
                   <span className="text-xs font-medium text-muted-foreground">
-                    {availableSlots.length} slots open
+                    {openSlotCount} slots open
                   </span>
                 </div>
                 <CardTitle className="mt-2 text-xl">
@@ -353,7 +350,7 @@ export default function DoctorDetailsPage() {
               </CardHeader>
 
               <CardContent className="space-y-5 pt-6">
-                {availableSlots.length === 0 ? (
+                {availableSchedules.length === 0 ? (
                   <div className="rounded-2xl border border-dashed p-6 text-center">
                     <Clock className="mx-auto h-8 w-8 text-muted-foreground/40" />
                     <p className="mt-2 text-sm font-semibold">
@@ -366,18 +363,14 @@ export default function DoctorDetailsPage() {
                   </div>
                 ) : (
                   <div className="grid max-h-72 grid-cols-1 gap-2.5 overflow-y-auto pr-1 sm:grid-cols-2">
-                    {availableSlots.map((slot) => {
-                      const slotKey = slot.scheduleId || slot.id;
-                      const startRaw =
-                        slot.schedule?.startDateTime || slot.startTime;
-                      const endRaw = slot.schedule?.endDateTime || slot.endTime;
-                      const isSelected = selectedSlotId === slotKey;
+                    {availableSchedules.map((schedule) => {
+                      const isSelected = selectedSlotId === schedule.id;
 
                       return (
                         <button
-                          key={slot.id}
+                          key={schedule.id}
                           type="button"
-                          onClick={() => setSelectedSlotId(slotKey)}
+                          onClick={() => setSelectedSlotId(schedule.id)}
                           className={`flex flex-col items-start rounded-xl border p-3 text-left transition-all ${
                             isSelected
                               ? "border-emerald-600 bg-emerald-500/10 ring-2 ring-emerald-600/20"
@@ -385,11 +378,17 @@ export default function DoctorDetailsPage() {
                           }`}
                         >
                           <span className="text-[11px] font-medium text-muted-foreground">
-                            {format(new Date(startRaw), "EEE, dd MMM yyyy")}
+                            {format(
+                              new Date(schedule.startDateTime),
+                              "EEE, dd MMM yyyy",
+                            )}
                           </span>
                           <span className="mt-1 text-xs font-bold text-foreground">
-                            {format(new Date(startRaw), "hh:mm a")} –{" "}
-                            {format(new Date(endRaw), "hh:mm a")}
+                            {format(new Date(schedule.startDateTime), "hh:mm a")} –{" "}
+                            {format(new Date(schedule.endDateTime), "hh:mm a")}
+                          </span>
+                          <span className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400">
+                            {schedule.availableSlots} slots available
                           </span>
                         </button>
                       );

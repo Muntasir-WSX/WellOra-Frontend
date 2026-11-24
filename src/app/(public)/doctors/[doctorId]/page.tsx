@@ -98,7 +98,7 @@ function DoctorProfileContent() {
           </div>
           <Button
             className="w-full bg-emerald-600 text-white"
-            onClick={() => router.push("/available-today")}
+            onClick={() => router.push(`/patient/doctors/${doctor.id}`)}
           >
             <CalendarCheck className="mr-2 h-4 w-4" />
             Book an Available Slot

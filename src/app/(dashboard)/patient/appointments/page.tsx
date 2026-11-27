@@ -196,6 +196,7 @@ function PatientAppointmentsContent() {
             const canCancel = !["COMPLETED", "CANCELLED"].includes(item.status);
             const canJoin = online && item.schedule?.meetingLink &&
               ["CONFIRMED", "ONGOING"].includes(item.status);
+            const prescriptionUrl = (item as IAppointmentRecord & { prescriptionUrl?: string }).prescriptionUrl;
 
             return (
               <Card key={item.id} className="flex h-full flex-col">
@@ -237,6 +238,17 @@ function PatientAppointmentsContent() {
                         <Video className="mr-2 h-4 w-4" />Join
                       </a>
                     </Button>
+                  )}
+                  {prescriptionUrl && (
+                    <a
+                      href={prescriptionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={`prescription-${item.id}.pdf`}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                    >
+                      Download Prescription (PDF)
+                    </a>
                   )}
                   {canCancel && (
                     <Button

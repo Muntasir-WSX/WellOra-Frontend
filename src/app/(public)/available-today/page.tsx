@@ -564,7 +564,7 @@ export default function AvailableTodayPage() {
               ) : (
                 <CreditCard className="h-4 w-4" />
               )}
-              Proceed to bKash Payment
+              Pay with SSLCommerz
             </Button>
           </DialogFooter>
         </DialogContent>

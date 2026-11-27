@@ -1,30 +1,30 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarCheck2,
+  CalendarClock,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  MailCheck,
+  Menu,
+  User,
+  UserCheck,
+  Users,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-import {
-  LayoutDashboard,
-  Building2,
-  UserCheck,
-  CalendarClock,
-  FileText,
-  CalendarCheck2,
-  CreditCard,
-  User,
-  ArrowLeft,
-  Menu,
-  X,
-  Users,
-  MailCheck,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import Logo from "@/components/shared/logo/logo";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth, type IAuthUser } from "@/context/AuthContext";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { type IAuthUser, useAuth } from "@/context/AuthContext";
 
 type DashboardRole = IAuthUser["role"];
 
@@ -60,12 +60,15 @@ const doctorNavigation: NavigationItem[] = [
   { href: "/doctor/appointments", label: "Appointments", icon: CalendarCheck2 },
   { href: "/doctor/prescriptions", label: "Prescriptions", icon: FileText },
   { href: "/doctor/payments", label: "Payments", icon: CreditCard },
-
 ];
 
 const patientNavigation: NavigationItem[] = [
   { href: "/patient", label: "Overview", icon: LayoutDashboard },
-  { href: "/patient/appointments", label: "Appointments", icon: CalendarCheck2 },
+  {
+    href: "/patient/appointments",
+    label: "Appointments",
+    icon: CalendarCheck2,
+  },
   { href: "/patient/doctors", label: "Booked Doctors", icon: UserCheck },
   { href: "/patient/payments", label: "Payments", icon: CreditCard },
 ];
@@ -159,7 +162,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+              <p className="truncate text-sm font-bold text-slate-900">
+                {user.name}
+              </p>
               <p className="truncate text-xs text-slate-500">{user.email}</p>
             </div>
           </Link>
@@ -179,7 +184,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div
+          <button
+            type="button"
+            aria-label="Close menu"
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
